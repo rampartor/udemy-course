@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+import os
 from datetime import timedelta
 
 from flask import Flask
@@ -13,7 +13,7 @@ from security import authenticate, identity
 
 app = Flask(__name__)
 app.secret_key = 'jopa'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///data.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 api = Api(app)
 
