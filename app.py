@@ -20,6 +20,7 @@ if uri.startswith("postgres://"):
 app.config['SQLALCHEMY_DATABASE_URI'] = uri
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['PROPAGATE_EXCEPTIONS'] = True
 api = Api(app)
 
 app.config['JWT_EXPIRATION_DELTA'] = timedelta(seconds=1800)
