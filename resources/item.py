@@ -1,6 +1,4 @@
-import sqlite3
-
-from flask_jwt import jwt_required
+from flask_jwt_extended import jwt_required
 from flask_restful import Resource, reqparse
 from models.item import ItemModel
 
@@ -10,15 +8,15 @@ class Item(Resource):
     parser.add_argument('price', type=float, required=True, help='this field cannot be left blank!')
     parser.add_argument('store_id', type=int, required=True, help='every item needs a store id.')
 
-    @jwt_required()
-    def get(self, name):
+    def get(self, name: str):
         item = ItemModel.find_by_name(name)
         if item:
             return item.json()
 
         return {'message': 'item not found'}, 404
 
-    def post(self, name):
+    @jwt_required(refresh=True)
+    def post(self, name: str):
         if ItemModel.find_by_name(name):
             return {'message': 'item {} is already exists'.format(name)}, 400
 
@@ -32,14 +30,15 @@ class Item(Resource):
 
         return item.json(), 201
 
-    def delete(self, name):
+    @jwt_required()
+    def delete(self, name: str):
         item = ItemModel.find_by_name(name)
         if item:
             item.delete_from_db()
 
         return {'message': 'item deleted'}
 
-    def put(self, name):
+    def put(self, name: str):
         data = Item.parser.parse_args()
 
         item = ItemModel.find_by_name(name)
@@ -56,4 +55,4 @@ class Item(Resource):
 
 class ItemList(Resource):
     def get(self):
-        return {'items': [item.json() for item in ItemModel.find_all()]}
+        return {'items': [item.json() for item in ItemModel.find_all()]}, 200
