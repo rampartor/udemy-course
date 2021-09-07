@@ -1,28 +1,37 @@
 from flask_jwt_extended import jwt_required
 from flask_restful import Resource, reqparse
+
 from models.item import ItemModel
+
+BLANK_ERROR = "'{}' cannot be blank"
+NAME_ALREADY_EXISTS = "item {} is already exists"
+ERROR_INSERTING = "an error occurred inserting item"
+ITEM_NOT_FOUND = "item not found"
+ITEM_DELETED = "item deleted"
 
 
 class Item(Resource):
     parser = reqparse.RequestParser()
     parser.add_argument(
-        "price", type=float, required=True, help="this field cannot be left blank!"
+        "price", type=float, required=True, help=BLANK_ERROR.format("price")
     )
     parser.add_argument(
-        "store_id", type=int, required=True, help="every item needs a store id."
+        "store_id", type=int, required=True, help=BLANK_ERROR.format("store_id")
     )
 
-    def get(self, name: str):
+    @classmethod
+    def get(cls, name: str):
         item = ItemModel.find_by_name(name)
         if item:
             return item.json()
 
-        return {"message": "item not found"}, 404
+        return {"message": ITEM_NOT_FOUND}, 404
 
+    @classmethod
     @jwt_required(refresh=True)
-    def post(self, name: str):
+    def post(cls, name: str):
         if ItemModel.find_by_name(name):
-            return {"message": "item {} is already exists".format(name)}, 400
+            return {"message": NAME_ALREADY_EXISTS.format(name)}, 400
 
         data = Item.parser.parse_args()
         item = ItemModel(name, **data)
@@ -30,19 +39,22 @@ class Item(Resource):
         try:
             item.save_to_db()
         except:
-            return {"message": "an error occurred inserting item"}, 500
+            return {"message": ERROR_INSERTING}, 500
 
         return item.json(), 201
 
+    @classmethod
     @jwt_required()
-    def delete(self, name: str):
+    def delete(cls, name: str):
         item = ItemModel.find_by_name(name)
         if item:
             item.delete_from_db()
+            return {"message": ITEM_DELETED}
 
-        return {"message": "item deleted"}
+        return {"message": ITEM_NOT_FOUND}
 
-    def put(self, name: str):
+    @classmethod
+    def put(cls, name: str):
         data = Item.parser.parse_args()
 
         item = ItemModel.find_by_name(name)
@@ -58,5 +70,6 @@ class Item(Resource):
 
 
 class ItemList(Resource):
-    def get(self):
+    @classmethod
+    def get(cls):
         return {"items": [item.json() for item in ItemModel.find_all()]}, 200
