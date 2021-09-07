@@ -11,13 +11,13 @@ from werkzeug.security import safe_str_cmp
 from blacklist import BLACKLIST
 from models.user import UserModel
 
-BLANK_ERROR = "'{} cannot be blank"
+BLANK_ERROR = "'{}' cannot be blank"
 USER_ALREADY_EXISTS = "user already exists"
 CREATED_SUCCESSFULLY = "user created successfully"
 USER_NOT_FOUND = "user not found"
 USER_DELETED = "user deleted"
 INVALID_CREDENTIALS = "invalid credentials"
-USER_LOGGED_OUT = "user <id={user_id} successfully logged out"
+USER_LOGGED_OUT = "user <id={user_id}> successfully logged out"
 
 _user_parser = reqparse.RequestParser()
 _user_parser.add_argument(
@@ -83,7 +83,7 @@ class UserLogout(Resource):
         jti = get_jwt()["jti"]
         user_id = get_jwt_identity()
         BLACKLIST.add(jti)
-        return {"message": USER_LOGGED_OUT.format(user_id)}, 200
+        return {"message": USER_LOGGED_OUT.format(user_id=user_id)}, 200
 
 
 class TokenRefresh(Resource):
